@@ -1,0 +1,22 @@
+name: Tag with Semantic Versioning
+
+on:
+  workflow_run:
+    workflows: ["Run Unit Tests", "Build Project"]
+    types:
+      - completed
+
+jobs:
+  tag:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm ci
+      - run: node scripts/semver-tag.js
+      - run: git push --tags
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
